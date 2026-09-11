@@ -113,6 +113,7 @@ void classifierList::allocateAll()
 
 void classifierList::reset(int firstReset)
 {
+  int i;   // 2026 PORT: hoisted from for-init (Borland scoped it to this block)
   // Delete the old allocations if nec.
   if (!firstReset)
     deleteAll();
@@ -121,7 +122,7 @@ void classifierList::reset(int firstReset)
   allocateAll();
 
   // Initialize classifier parameters
-  for (int i=0; i<length; i++)
+  for (i=0; i<length; i++)
   {
     strength[i] = startStrength;
     bid[i] = 0.0;
@@ -402,13 +403,14 @@ message classifierList::createRandomMessage(char *mask)
 
 int classifierList::pickWeakRule(int *eligible)
 {
+  int i;   // 2026 PORT: hoisted from for-init (Borland scoped it to this block)
   double maxStren = 0.0, *tempStren;
 
   try { tempStren = new double[length]; }
   catch(xalloc) { error(0,"classifierList::pickWeakRule()"); }
 
   // Determine the maximum strength of the eligible classifiers
-  for (int i=0; i<length; i++)
+  for (i=0; i<length; i++)
   {
     if (elitismEnabled && eliteSet[i]) eligible[i] = 0;
     if (eligible[i] && strength[i] > maxStren) maxStren = strength[i];
@@ -450,6 +452,7 @@ int classifierList::pickWeakRule(int *eligible)
 
 int classifierList::roulette(double *bids, int *eligible, int maxIndex)
 {
+  int i;   // 2026 PORT: hoisted from for-init (Borland scoped it to this block)
   double *eligibleBids;
   int *indexSet, choice;
 
@@ -462,7 +465,7 @@ int classifierList::roulette(double *bids, int *eligible, int maxIndex)
   // Copy eligible bids into new array and sum the eligible bids
   int num=0;
   double sum = 0.0;
-  for (int i=0; i<maxIndex; i++)
+  for (i=0; i<maxIndex; i++)
     if (eligible[i])
     {
       eligibleBids[num] = bids[i];
@@ -531,6 +534,7 @@ int classifierList::roulette(double *bids, int *eligible, int maxIndex)
 
 void classifierList::crossOver()
 {
+  int i;   // 2026 PORT: hoisted from for-init (Borland scoped it to this block)
   int *eligible;
 
   try { eligible = new int[length]; }
@@ -540,7 +544,7 @@ void classifierList::crossOver()
   ++numCrossovers;
 
   // All rules are eligible for first selection
-  for (int i=0; i<length; i++) eligible[i] = 1;
+  for (i=0; i<length; i++) eligible[i] = 1;
 
   // Determine type of crossover
   if ( (double(getRandom(100))/100.0) < sexualProb )  // Sexual Crossover
@@ -640,13 +644,14 @@ void classifierList::crossOver()
 
 void classifierList::mutation()
 {
+  int j;   // 2026 PORT: hoisted from for-init (Borland scoped it to this block)
   int size = conditionMsg->size();
 
   for (int i=0; i<length; i++)
   {
     if (!elitismEnabled || (elitismEnabled && !eliteSet[i]))
     {
-      for (int j=0; j<size; j++)
+      for (j=0; j<size; j++)
       {
         if (condMask[j] == 'X') mutateTernary(&conditionMsg[i][j]);
         else if (condMask[j] == 'B') mutateBinary(&conditionMsg[i][j]);
@@ -1066,6 +1071,7 @@ void classifierList::save(FILE *fptr)
 
 void classifierList::getMatches(messageBoard & msgBoard)
 {
+  int i, j;   // 2026 PORT: hoisted from for-init (Borland scoped it to this block)
   int msgBoardLength = msgBoard.actualSize(),
       done = 0, numMsgMatched, loopCount = 0,
       *msgBoardMatch, *supplier, *eligibility;
@@ -1089,16 +1095,16 @@ void classifierList::getMatches(messageBoard & msgBoard)
 
   // Copy the message board
 #ifdef NETWORK
-  for (int j = 0; j < msgBoardLength; j++)
+  for (j = 0; j < msgBoardLength; j++)
     msgBoard.getMessage(j,msg[j],&supplier[j],&ID[j],&ruleBid[j]);
 #else
-  for (int j = 0; j < msgBoardLength; j++)
+  for (j = 0; j < msgBoardLength; j++)
     msgBoard.getMessage(j,msg[j],&supplier[j],&ruleBid[j]);
 #endif
 
   // Make all classifiers eligible for CDO.  The CDO function will remove
   // rule eligibility as necessary.
-  for (int i=0; i<length; i++) eligibility[i] = 1;
+  for (i=0; i<length; i++) eligibility[i] = 1;
 
   while (!done)
   {
@@ -1379,7 +1385,8 @@ void classifierList::adjustStrengths()
 
 void classifierList::checkStrengths()
 {
-  for (int i=0; i<length; i++)
+  int i;   // 2026 PORT: hoisted from for-init (Borland scoped it to this block)
+  for (i=0; i<length; i++)
   {
     if (strength[i] < 0.0) strength[i] = 0.0;
     else if (strength[i] > strengthCap) strength[i] = strengthCap;

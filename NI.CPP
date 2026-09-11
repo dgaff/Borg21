@@ -174,6 +174,7 @@ void networkInterface::postNetwork(int clockCount,
                                    messageBoard & msgBoard,
                                    classifierList & classList)
 {
+  int i;   // 2026 PORT: hoisted from for-init (Borland scoped it to this block)
   if (!classifierSystem::isNetworkOn()) return;
 
   // Classifier passing
@@ -191,7 +192,7 @@ void networkInterface::postNetwork(int clockCount,
 
     // Copy classifiers that are eligible to be broadcast
     int j=0;
-    for (int i=0; i<numClass; i++)
+    for (i=0; i<numClass; i++)
     {
       classList.getClassifier(i,cond,act,&stren);
       if (stren >= strenThresh)
@@ -225,7 +226,7 @@ void networkInterface::postNetwork(int clockCount,
 
     // Copy the action messages that are eligible to be broadcast
     int j=0;
-    for (int i=0; i<msgBoardSize; i++)
+    for (i=0; i<msgBoardSize; i++)
     {
       msgBoard.getMessage(i,msg,&supplier,&ID,&ruleBid);
       if (ruleBid >= bidThresh)
@@ -289,6 +290,7 @@ void networkInterface::postNetwork(int clockCount,
 void networkInterface::readNetwork(messageBoard & msgBoard,
                                    classifierList & classList)
 {
+  int i;   // 2026 PORT: hoisted from for-init (Borland scoped it to this block)
   if (!classifierSystem::isNetworkOn()) return;
 
   // Classifier passing
@@ -312,7 +314,7 @@ void networkInterface::readNetwork(messageBoard & msgBoard,
 
       // The eligble array will be used to replace weak classifiers with those
       // from the receive queue.
-      for (int i=0; i<numClass; i++) eligible[i] = 1;
+      for (i=0; i<numClass; i++) eligible[i] = 1;
 
       // Remove the classifiers from the queue
       for (i=0; i<numMsg; i++)
@@ -354,7 +356,7 @@ void networkInterface::readNetwork(messageBoard & msgBoard,
       catch(xalloc) { error(0,"networkInterface::readNetwork()"); }
 
       // Remove the action messages from the queue
-      for (int i=0; i<numMsg; i++)
+      for (i=0; i<numMsg; i++)
         Rx.remove(actRecvd[i]);
 
       // Sort the action messages from highest to lowest bid

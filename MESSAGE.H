@@ -27,7 +27,7 @@ class message
    static void restoreDefaults();
    message(const char *str);
    void operator=(const char *str);
-   message(message & msg2);
+   message(const message & msg2);   // 2026 PORT: was message(message&); see MESSAGE.CPP
    void operator=(const message &msg2);
 
    //-------------------------------------------------------------------------//

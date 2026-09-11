@@ -4,7 +4,7 @@
 #include<string.h>   // for strlen() function
 #include"graph.h"
 
-extern int error(int, char *);  // from ei.cpp
+extern int error(int, const char *);  // from ei.cpp
 
 graphics::graphics() : graphicsInitialized(0), regionCount(0), maxRegions(20)
 {

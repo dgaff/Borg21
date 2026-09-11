@@ -6,7 +6,7 @@
 // functions to implement a learning classifier system.  Every instantiation
 // of the classifierSystem object is a separate LCS.  The classifier system
 // has several common parameters which are shared over multiple
-// instantiations.  These are the static memeber variables, whose defaults
+// instantiations.  These are the static member variables, whose defaults
 // are listed below.  To use the classifierSystem object, a user must
 // program the function stubs contained in the ei module (environment
 // interface) as well as build a front-end to repeatedly call the
@@ -50,6 +50,14 @@
 // operations.
 //----------------------------------------------------------------------------
 #include<except.h>
+
+//----------------------------------------------------------------------------
+// 2026 PORT: restores Borland's rand() and its RAND_MAX of 32767.  getRandom()
+// below divides by RAND_MAX+1, which overflows int on a modern toolchain and
+// makes every draw 0 or negative -- silently, with no diagnostic.  This include
+// MUST stay ahead of getRandom().  See compat/borland_rand.h for the details.
+//----------------------------------------------------------------------------
+#include<borland_rand.h>
 
 //----------------------------------------------------------------------------
 // Interface to the pseudo-random number generator.  This inlined function

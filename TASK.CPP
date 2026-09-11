@@ -11,10 +11,11 @@
 
 void taskEnvironment::deleteAll()
 {
+  int i;   // 2026 PORT: hoisted from for-init (Borland scoped it to this block)
   delete [] LCS;
   delete [] obstPts;
 
-  for (int i=0; i<oldNumAgents; i++)
+  for (i=0; i<oldNumAgents; i++)
     delete [] agentPts[i];
   delete [] agentPts;
 
@@ -46,6 +47,7 @@ void taskEnvironment::deleteAll()
 
 void taskEnvironment::allocateAll()
 {
+  int i;   // 2026 PORT: hoisted from for-init (Borland scoped it to this block)
   unsigned dummy1;
   int dummy2, maxCount;
 #ifdef NETWORK
@@ -60,7 +62,7 @@ void taskEnvironment::allocateAll()
     obstPts = new coord[numObst];
 
     agentPts = new coord huge *[numAgents];
-    for (int i=0; i<numAgents; i++)
+    for (i=0; i<numAgents; i++)
       agentPts[i] = new huge coord[maxCount+1];
 
     agentDir = new float huge *[numAgents];
@@ -218,6 +220,7 @@ void taskEnvironment::restoreDefaults()
 
 int taskEnvironment::clockTick()
 {
+  int i;   // 2026 PORT: hoisted from for-init (Borland scoped it to this block)
   int numAgentsFinished = 0;
 
   // Increment the clock
@@ -225,7 +228,7 @@ int taskEnvironment::clockTick()
 
   // Individual agent clock ticks
 
-  for (int i=0; i<numAgents; i++)
+  for (i=0; i<numAgents; i++)
   {
     // Clock tic only if agent is not finished.
     if (!agentFinished[i]) agentFinished[i] = LCS[i].clockTick();
@@ -295,6 +298,7 @@ void taskEnvironment::loadStatic(FILE *fptr)
 
 void taskEnvironment::save(FILE *fptr)
 {
+  int i;   // 2026 PORT: hoisted from for-init (Borland scoped it to this block)
   fwrite(&envType,sizeof(int),1,fptr);
   fwrite(&x1,sizeof(int),1,fptr);
   fwrite(&y1,sizeof(int),1,fptr);
@@ -308,7 +312,7 @@ void taskEnvironment::save(FILE *fptr)
   fwrite(&goalPt,sizeof(coord),1,fptr);
   fwrite(obstPts,sizeof(coord),numObst,fptr);
   fwrite(ptCount,sizeof(int),numAgents,fptr);
-  for (int i=0; i<numAgents; i++)
+  for (i=0; i<numAgents; i++)
   {
     fwrite(agentPts[i],sizeof(coord),ptCount[i],fptr);
     fwrite(agentDir[i],sizeof(float),ptCount[i],fptr);
@@ -340,6 +344,7 @@ void taskEnvironment::save(FILE *fptr)
 
 void taskEnvironment::load(FILE *fptr)
 {
+  int i;   // 2026 PORT: hoisted from for-init (Borland scoped it to this block)
   fread(&envType,sizeof(int),1,fptr);
   fread(&x1,sizeof(int),1,fptr);
   fread(&y1,sizeof(int),1,fptr);
@@ -356,7 +361,7 @@ void taskEnvironment::load(FILE *fptr)
   fread(&goalPt,sizeof(coord),1,fptr);
   fread(obstPts,sizeof(coord),numObst,fptr);
   fread(ptCount,sizeof(int),numAgents,fptr);
-  for (int i=0; i<numAgents; i++)
+  for (i=0; i<numAgents; i++)
   {
     fread(agentPts[i],sizeof(coord),ptCount[i],fptr);
     fread(agentDir[i],sizeof(float),ptCount[i],fptr);
@@ -556,10 +561,11 @@ int taskEnvironment::readClock(int agent)
 
 void taskEnvironment::saveAgentPositions()
 {
+  int i;   // 2026 PORT: hoisted from for-init (Borland scoped it to this block)
   char filename[13];
   FILE *fptr;
 
-  for (int i=0; i<numAgents; i++)
+  for (i=0; i<numAgents; i++)
   {
     int agentCount = ptCount[i];
 
@@ -647,12 +653,18 @@ void taskEnvironment::loadRules(FILE *fptr)
 
 void taskEnvironment::initLocations()
 {
+  int i;   // 2026 PORT: hoisted from for-init (Borland scoped it to this block)
   // Set the locations of the obstacles and goal
   if (envType == STANDARD)
   {
+    // 2026 PORT: hoisted from the for-init below.  Kept inside this block, not
+    // at function scope, because the else branch declares its own `double x`
+    // -- hoisting further out would leave that one shadowing this one.
+    int x;
+
     x1 = -600;  x2 = 600;  y1 = -600;  y2 = 600;
 
-    for (int i = 0, x = -300; i < 200; i++, x++)
+    for (i = 0, x = -300; i < 200; i++, x++)
       obstPts[i] = coord(x,-300);
     for (i = 200, x = -50; i < 400; i++, x++)
       obstPts[i] = coord(x,0);
@@ -664,7 +676,7 @@ void taskEnvironment::initLocations()
     x1 = -400;  x2 = 400;  y1 = -300;  y2 = 500;
 
     double x = -100.0;
-    for (int i=0; i<401; i++)
+    for (i=0; i<401; i++)
     {
       obstPts[i] = coord(x,sqrt(10000.0-x*x));
       x+= .5;
@@ -674,7 +686,7 @@ void taskEnvironment::initLocations()
   }
 
   // Set the agent locations and reset the done flags
-  for (int i=0; i<numAgents; i++)
+  for (i=0; i<numAgents; i++)
   {
     if (envType == STANDARD)
       agentPts[i][0] = coord(-400.0 + float(i)*40.0, -450.0);
@@ -736,10 +748,11 @@ void taskEnvironment::calcGoalDistAndDir(coord & pt, float dir, float *gDist,
 void taskEnvironment::calcObstDistAndDir(unsigned long ID, coord & pt, float dir,
                                          float *oDist, float *oDir)
 {
+  int i;   // 2026 PORT: hoisted from for-init (Borland scoped it to this block)
   coord closestObstPt;
 
   *oDist = MAXFLOAT;
-  for (int i=0; i<numObst; i++)
+  for (i=0; i<numObst; i++)
   {
     float dist = distance(pt,obstPts[i]);
     if (dist < *oDist) { *oDist = dist; closestObstPt = obstPts[i]; }
@@ -903,12 +916,13 @@ void taskEnvironment::checkGoalSensors(int *GL, int *GR, unsigned long ID,
 void taskEnvironment::checkObstSensors(int *OL, int *OR, unsigned long ID,
                                        float oRange, float dirRange)
 {
+  int i;   // 2026 PORT: hoisted from for-init (Borland scoped it to this block)
   int index = int(ID)-1;
   float curDir = agentDir[index][ptCount[index]-1];
   coord curLoc = agentPts[index][ptCount[index]-1];
 
   *OL = *OR = 0;
-  for (int i=0; i<numObst; i++)
+  for (i=0; i<numObst; i++)
   {
     float ang = unwrap( angle(curLoc, obstPts[i]) - curDir ),
           dist = distance(curLoc, obstPts[i]);

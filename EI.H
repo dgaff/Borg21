@@ -245,7 +245,9 @@ class environmentInterface
    int postOutput(messageBoard & msgBoard, classifierList & classList);
 };
 
-// Global error messsage function prototype 
-int error(int num, char *str = "");
+// Global error messsage function prototype
+// 2026 PORT: str is const char*; every one of the ~57 call sites passes a
+// string literal, which C++11 onward will not bind to char*.
+int error(int num, const char *str = "");
 
 #endif

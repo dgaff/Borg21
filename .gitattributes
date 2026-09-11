@@ -1,0 +1,17 @@
+# The 1995 Borland sources are DOS CRLF files and are a preserved artifact:
+# store and check them out byte-for-byte, with no end-of-line translation.
+# Without this, a tool that rewrites a file in text mode silently converts it
+# to LF and every line shows up as changed, burying the real edits.
+*                 -text
+
+# The 2026 port's own files are ordinary LF text.  These are listed by path
+# rather than by extension glob: this repo holds both CLSSLIST.CPP and
+# tests/determinism.cpp, and on a case-insensitive checkout a "*.cpp" pattern
+# matches the upper-case 1995 files too.
+CMakeLists.txt    text eol=lf
+.gitignore        text eol=lf
+.gitattributes    text eol=lf
+CLAUDE.md         text eol=lf
+compat/**         text eol=lf
+host/**           text eol=lf
+tests/**          text eol=lf

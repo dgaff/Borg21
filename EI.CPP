@@ -1,7 +1,12 @@
-#define STRICT
-#include<windows.h>
+//============================================================================
+// 2026 PORT: this file held the ONLY Windows dependency below Layer 3 -- the
+// global error() forwarded to UI.displayError, which dragged <windows.h> and
+// the whole Win16 user interface into the simulation core.  That call now goes
+// through the host hook in host/host.h, so Layers 1 and 2 link against any
+// front end.  #define STRICT, <windows.h> and "ui.h" are no longer needed.
+//============================================================================
 #include"task.h"
-#include"ui.h"
+#include<host.h>
 
 //============================================================================
 // FUNCTION:     error()
@@ -48,9 +53,9 @@
 //                             system.
 //============================================================================
 
-int error(int num,char *str)
+int error(int num,const char *str)
 {
- return UI.displayError(num,str);
+ return hostDisplayError(num,str);
 }
 
 //============================================================================
@@ -195,6 +200,7 @@ void environmentInterface::moveAnt(message &msg)
 void environmentInterface::readInput(messageBoard & msgBoard,
                                      classifierList & classList)
 {
+  int i;   // 2026 PORT: hoisted from for-init (Borland scoped it to this block)
  environMsg = readSensors();
 
 #ifdef NETWORK
@@ -219,7 +225,7 @@ void environmentInterface::readInput(messageBoard & msgBoard,
  else
  {
    // Copy the input message board
-   for (int i=0; i<size; i++)
+   for (i=0; i<size; i++)
      msgBoard.getMessage(i,msg[i],&supplier[i],&ID[i],&bid[i]);
 
    // Merge the first 4 alleles of the environment message into the first 4
@@ -259,7 +265,7 @@ void environmentInterface::readInput(messageBoard & msgBoard,
  else
  {
    // Copy the input message board
-   for (int i=0; i<size; i++)
+   for (i=0; i<size; i++)
      msgBoard.getMessage(i,msg[i],&supplier[i],&bid[i]);
 
    // Merge the first 4 alleles of the environment message into the first 4
@@ -311,6 +317,7 @@ void environmentInterface::readInput(messageBoard & msgBoard,
 int environmentInterface::postOutput(messageBoard & msgBoard,
                                      classifierList & classList)
 {
+  int i;   // 2026 PORT: hoisted from for-init (Borland scoped it to this block)
   int msgBoardLength = msgBoard.actualSize(),
       classListSize = classList.size(),
       *supplier, *eligible;
@@ -347,7 +354,7 @@ int environmentInterface::postOutput(messageBoard & msgBoard,
   { error(0,"agentInfo::postOutput()"); }
 
   // Copy the message board and tag the environment messages.
-  for (int i=0; i<msgBoardLength; i++)
+  for (i=0; i<msgBoardLength; i++)
   {
 #ifdef NETWORK
     msgBoard.getMessage(i,msg[i],&supplier[i],&ID[i],&bid[i]);
@@ -388,7 +395,9 @@ int environmentInterface::postOutput(messageBoard & msgBoard,
     classList.getClassifier(index,cond,action,&stren,&spec,&support,&ruleBid,&match,
                             &sel,&sup,&supplierID,&elite,&number);
 #else
-    classList.getClassifier(index,cond,action,&stren,&spec,&suppport,&ruleBid,&match,
+    // Doug note 2026: there was a typo &suppport here for this compile branch. I'm not
+    // sure if I actually ran this branch. Obviously it would not have compiled.
+    classList.getClassifier(index,cond,action,&stren,&spec,&support,&ruleBid,&match,
                             &sel,&sup,&elite,&number);
 #endif
     msg[0] = action;

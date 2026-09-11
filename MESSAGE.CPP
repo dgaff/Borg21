@@ -190,9 +190,17 @@ void message::operator=(const char *str)
 //
 // I/O:           -->  msg2  -  The message to be assigned to newly-created
 //                              message.
+//
+// 2026 PORT:    The parameter was 'message & msg2' (non-const).  Borland let a
+//               temporary bind to a non-const reference, so lines like
+//                   message msg = mask;                      (CLSSLIST.CPP:380)
+//                   message act = createRandomMessage(...);  (CLSSLIST.CPP:803)
+//               compiled.  Standard C++ rejects that, so the parameter is now
+//               const.  The body only strcpy's out of msg2 and never writes to
+//               it, so behaviour is unchanged.
 //============================================================================
 
-message::message(message & msg2)
+message::message(const message & msg2)
 {
  try { msg = new char[length+1]; }
  catch(xalloc) { error(0,"message::message(&)"); }
@@ -228,7 +236,8 @@ void message::operator=(const message &msg2)
 
 void message::msgToStr(char *string)
 {
- for (int i=0; i<length; i++)
+  int i;   // 2026 PORT: hoisted from for-init (Borland scoped it to this block)
+ for (i=0; i<length; i++)
    string[i] = msg[i];
 
  string[i] = '\0';

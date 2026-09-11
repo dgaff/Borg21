@@ -50,8 +50,11 @@ class coord
     { if (x!=pt.x || y!=pt.y) return 1;
       else return 0;
     }
-    float getX() { return x; }
-    float getY() { return y; }
+    // 2026 PORT: these were non-const, which made taskEnvironment::getCurrentLoc()
+    // (returning const coord &) unusable without copying first.  Adding const is
+    // source-compatible -- non-const objects may still call them.
+    float getX() const { return x; }
+    float getY() const { return y; }
 
     friend float angle(const coord & pt1, const coord & pt2);
     friend float distance(const coord & pt1, const coord & pt2);
