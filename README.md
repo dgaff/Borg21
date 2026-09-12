@@ -19,6 +19,8 @@ The best part about this and reflective of Claude's brialliance is that the port
 See [CLAUDE.md](CLAUDE.md) for the architecture, the conventions, and the
 reasoning behind the original design.
 
+NOTE: I haven't tested every aspect of the GUI yet, e.g. I haven't tried tweaking a bunch of simulator parameters. As a first step, I just wanted to get the old code running again.
+
 ## Requirements
 
 | | |
