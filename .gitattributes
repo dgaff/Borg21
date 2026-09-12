@@ -16,6 +16,17 @@ compat/**         text eol=lf
 host/**           text eol=lf
 tests/**          text eol=lf
 cli/**            text eol=lf
+gui/*.cpp         text eol=lf
+gui/*.h           text eol=lf
+gui/vendor/PROVENANCE.md  text eol=lf
+
+# ...and the vendored third-party sources under gui/vendor are stored exactly as
+# upstream shipped them, so gui/vendor/SHA256SUMS stays verifiable against a
+# fresh clone of the pinned commit.  Listed per-directory rather than as
+# "gui/vendor/**" so the PROVENANCE.md line above still wins for that one file.
+gui/vendor/imgui/**  -text -eol
+gui/vendor/stb/**    -text -eol
+gui/vendor/SHA256SUMS  text eol=lf
 
 # ...except the 1995 batch script kept as a test fixture, which is a DOS file
 # and is the artifact the .b parser is tested against.  Later patterns win, so

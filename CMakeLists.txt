@@ -216,3 +216,107 @@ add_test(NAME legacy_run
                     $<TARGET_FILE:borg>
                     ${CMAKE_CURRENT_SOURCE_DIR}/tests/fixtures/legacy
                     ${CMAKE_CURRENT_BINARY_DIR}/legacy-scratch)
+
+#=============================================================================
+# Layer 3 -- the GUI.  Phase 5.
+#
+# Replaces UI.CPP, GRAPH.CPP, BORG.CPP and BORG.RC, which stay in the tree
+# unbuilt as the preserved Win16 artifact.  Nothing in gui/ is compiled into
+# borgcore: the simulation has exactly one dependency on its host, the
+# hostDisplayError() hook in host/host.h, and that stays the only one.
+#
+# DEPENDENCIES
+#   SDL3        Homebrew, found through its CMake config.  Window, input, native
+#               file dialogs, and the renderer -- which is Metal on macOS, so
+#               this is a Metal build without a line of Objective-C.
+#   Dear ImGui  vendored, pinned, `docking` branch.  gui/vendor/PROVENANCE.md
+#               records the commit and why the branch matters.
+#   stb_image_write  vendored, for PNG export.
+#
+# Off with -DBORG_BUILD_GUI=OFF, which is also what happens automatically when
+# SDL3 is not installed -- the CLI and every test must keep building without it.
+#
+# DLCS ONLY, like the CLI, and for a related reason: the panels print agent IDs
+# and the Network Settings window edits parameters that do not exist without
+# NETWORK.  The variant-specific code is confined to the two list panels and that
+# one window, and is written with both branches present, but only the DLCS build
+# is compiled -- so treat those #else branches with the suspicion this codebase
+# has earned (see "THE TWO VARIANTS" above).
+#=============================================================================
+
+option(BORG_BUILD_GUI "Build the Dear ImGui front end (needs SDL3)" ON)
+
+if(BORG_BUILD_GUI)
+  find_package(SDL3 QUIET CONFIG)
+
+  if(NOT SDL3_FOUND)
+    message(STATUS
+      "Borg: SDL3 not found -- skipping the GUI. "
+      "Install it with `brew install sdl3`, or pass -DBORG_BUILD_GUI=OFF to "
+      "stop asking.")
+  else()
+    set(BORG_IMGUI_DIR ${CMAKE_CURRENT_SOURCE_DIR}/gui/vendor/imgui)
+
+    #-------------------------------------------------------------------------
+    # Dear ImGui, as its own library so the warning settings can differ: third-
+    # party code is compiled without -Wall, because its warnings are not ours to
+    # fix and it must not be edited (gui/vendor/PROVENANCE.md).
+    #-------------------------------------------------------------------------
+    add_library(borg_imgui STATIC
+        ${BORG_IMGUI_DIR}/imgui.cpp
+        ${BORG_IMGUI_DIR}/imgui_draw.cpp
+        ${BORG_IMGUI_DIR}/imgui_tables.cpp
+        ${BORG_IMGUI_DIR}/imgui_widgets.cpp
+        ${BORG_IMGUI_DIR}/backends/imgui_impl_sdl3.cpp
+        ${BORG_IMGUI_DIR}/backends/imgui_impl_sdlrenderer3.cpp
+    )
+    target_include_directories(borg_imgui PUBLIC
+        ${BORG_IMGUI_DIR}
+        ${BORG_IMGUI_DIR}/backends
+    )
+    target_link_libraries(borg_imgui PUBLIC SDL3::SDL3)
+
+    #-------------------------------------------------------------------------
+    add_executable(borg_gui MACOSX_BUNDLE
+        gui/main.cpp
+        gui/state.cpp
+        gui/panels.cpp
+        gui/settings.cpp
+        gui/files.cpp
+        gui/batch_ui.cpp
+        gui/walk.cpp
+        gui/export.cpp
+    )
+
+    target_include_directories(borg_gui PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/gui
+        ${CMAKE_CURRENT_SOURCE_DIR}/gui/vendor/stb
+    )
+
+    target_link_libraries(borg_gui PRIVATE borgcore borg_imgui)
+
+    # -Wall for our code, as everywhere else in this build.
+    target_compile_options(borg_gui PRIVATE -Wall -Wno-nonportable-include-path)
+
+    #-------------------------------------------------------------------------
+    # MACOSX_BUNDLE makes borg_gui.app, which is what a GUI program on macOS has
+    # to be to take keyboard focus and appear in the Dock properly.  The binary
+    # inside it still runs from a terminal.
+    #
+    # NOTE ON WORKING DIRECTORY: borg.ini, borg_layout.ini and the .pos files
+    # taskEnvironment writes are all relative paths -- agent1.pos, obst.pos and
+    # goal.pos are hard-coded 8.3 names in saveAgentPositions() -- so they land
+    # wherever the process was started.  Launched from Finder that is "/", which
+    # is not writable; launched from a terminal it is the terminal's directory,
+    # which is almost certainly what is wanted.  Hence: run it from a terminal.
+    #-------------------------------------------------------------------------
+    set_target_properties(borg_gui PROPERTIES
+        MACOSX_BUNDLE_BUNDLE_NAME "Borg"
+        MACOSX_BUNDLE_GUI_IDENTIFIER "com.douggaff.borg"
+        MACOSX_BUNDLE_BUNDLE_VERSION "2.1"
+        MACOSX_BUNDLE_SHORT_VERSION_STRING "2.1"
+    )
+
+    message(STATUS "Borg: building the GUI (SDL3 ${SDL3_VERSION}, Dear ImGui vendored)")
+  endif()
+endif()
