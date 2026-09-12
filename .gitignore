@@ -4,3 +4,4 @@
 *.dsw
 .recall/*
 build/
+.DS_Store 
