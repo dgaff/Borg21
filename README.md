@@ -21,6 +21,8 @@ reasoning behind the original design.
 
 NOTE: I haven't tested every aspect of the GUI yet, e.g. I haven't tried tweaking a bunch of simulator parameters. As a first step, I just wanted to get the old code running again.
 
+NOTE #2: There's a build #define called NETWORK in the code. It means "build the DLCS version" and it's the default. When I wrote this code initially, I wrote only the LCS implementation. That was Borg 1.0, and it's backed up separately outside of this repo. That work wasn't sufficient for my masters thesis, though, so I wrote version 2, which implemented DLCS. Most of the code was shared, but initiating the simulations was different. I kept the old LCS code path in, and implemented DLCS with the NETWORK build tag. I never retested the non-NETWORK build path in version 2, because I ended up implementing a way to call the simulator without animats sharing learnings, effectively turning the Distributed part off. So the old code path wasn't needed anymore. Anyway, Claude found a build error in the non-NETWORK build path, and we chose to fix it. Claude did retest that code path, but I haven't verified it.
+
 ## Requirements
 
 | | |
