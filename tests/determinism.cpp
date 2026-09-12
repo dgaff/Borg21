@@ -24,13 +24,11 @@
 #include <host.h>
 
 //----------------------------------------------------------------------------
-// In 1995 these two globals lived in BORG.CPP (Layer 3) and had to be
-// constructed in the order G, task, UI.  With the GUI gone, the host owns the
-// taskEnvironment.  Phase 3 should decide whether Layer 2 ought to define its
-// own global instead of making every front end remember to.
+// `task` itself is defined in host/globals.cpp, inside borgcore.  In 1995 it
+// lived in BORG.CPP (Layer 3); Phase 3 moved it into the library so that a front
+// end cannot forget to declare it.  All that is left for a host to supply is the
+// error hook.
 //----------------------------------------------------------------------------
-taskEnvironment task;
-
 int hostDisplayError(int num, const char *str)
 {
   fprintf(stderr, "  [borg error %d] %s\n", num, str ? str : "");

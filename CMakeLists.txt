@@ -7,8 +7,12 @@
 # (ENVIRON.CPP became EI.CPP).  The source list below is explicit.
 #
 # WHAT THIS BUILDS
-#   borgcore          Layer 1 (classifier system) + Layer 2 (task environment).
-#   borg_determinism  The Phase 1 guard test.  See tests/determinism.cpp.
+#   borgcore          Layer 1 (classifier system) + Layer 2 (task environment),
+#                     plus the host/ support code that used to live in Layer 3:
+#                     the .sim reader/writer and the .b batch runner.
+#   borg              Headless command-line front end.  cli/main.cpp.
+#   borg_determinism  Phase 1 guard test.  tests/determinism.cpp.
+#   borg_batchformat  Phase 3 guard test.  tests/batch_format.cpp.
 #
 # WHAT THIS DOES NOT BUILD
 #   UI.CPP, GRAPH.CPP, BORG.CPP, BORG.RC -- Layer 3, the Win16 + BWCC user
@@ -42,6 +46,13 @@ add_library(borgcore STATIC
     EI.CPP
     TASK.CPP
     compat/borland_rand.cpp
+
+    # 2026 port support.  host/ is platform-neutral code that every front end
+    # needs -- it is not a second GUI.  globals.cpp holds the taskEnvironment
+    # that BORG.CPP used to define; simfile and batch are lifted out of UI.CPP.
+    host/globals.cpp
+    host/simfile.cpp
+    host/batch.cpp
 )
 
 target_include_directories(borgcore PUBLIC
@@ -76,11 +87,30 @@ target_compile_options(borgcore PUBLIC
 )
 
 #-----------------------------------------------------------------------------
-# Phase 1 guard.  Run with: ctest --test-dir build --output-on-failure
+# The headless front end.
+#-----------------------------------------------------------------------------
+add_executable(borg cli/main.cpp)
+target_link_libraries(borg PRIVATE borgcore)
+
+#-----------------------------------------------------------------------------
+# Guard tests.  Run with: ctest --test-dir build --output-on-failure
 #-----------------------------------------------------------------------------
 enable_testing()
 
 add_executable(borg_determinism tests/determinism.cpp)
 target_link_libraries(borg_determinism PRIVATE borgcore)
-
 add_test(NAME determinism COMMAND borg_determinism)
+
+add_executable(borg_batchformat tests/batch_format.cpp)
+target_link_libraries(borg_batchformat PRIVATE borgcore)
+add_test(NAME batch_format COMMAND borg_batchformat)
+
+# End-to-end: run the genuine 1995 SAMPLE.B through the CLI and check the .O
+# table, the .sim snapshot, and the rejection of a malformed spec line.  The
+# script writes only inside its own scratch directory under the build tree.
+add_test(NAME batch_run
+         COMMAND ${CMAKE_COMMAND} -E env
+                 sh ${CMAKE_CURRENT_SOURCE_DIR}/tests/run_batch.sh
+                    $<TARGET_FILE:borg>
+                    ${CMAKE_CURRENT_SOURCE_DIR}/tests/fixtures/sample.b
+                    ${CMAKE_CURRENT_BINARY_DIR}/batch-scratch)

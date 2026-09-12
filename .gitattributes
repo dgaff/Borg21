@@ -15,3 +15,9 @@ CLAUDE.md         text eol=lf
 compat/**         text eol=lf
 host/**           text eol=lf
 tests/**          text eol=lf
+cli/**            text eol=lf
+
+# ...except the 1995 batch script kept as a test fixture, which is a DOS file
+# and is the artifact the .b parser is tested against.  Later patterns win, so
+# this must stay below the "tests/**" line above.
+tests/fixtures/** -text -eol
