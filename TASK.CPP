@@ -162,9 +162,12 @@ void taskEnvironment::reset(int firstReset)
   // initialization.
   for (int i=0; i<numAgents; i++)
   {
-#ifdef NETWORK
+    // 2026 PORT (BUG FIX): was #ifdef NETWORK.  The comment above is not about
+    // networking -- it is about this class indexing its per-agent arrays as
+    // ID-1 (see getCurrentLoc/getCurrentDir in TASK.H), which it does in both
+    // variants.  Leaving the assignment out of the plain-LCS build left every
+    // agent's environmentInterface with an uninitialised ID.
     LCS[i].setAgentID(i+1);
-#endif
 
     int size = classifierList::size();
     for (int j=0; j<size; j++)
@@ -623,6 +626,25 @@ void taskEnvironment::saveRules(FILE *fptr)
   {
 #ifdef NETWORK
     fprintf(fptr,"; Agent %ld\n",LCS[i].getAgentID());
+#else
+    // 2026 PORT (BUG FIX): this header line used to be written only #ifdef
+    // NETWORK, but loadRules() below skips one line per agent unconditionally.
+    // So in a plain-LCS build, save/load were asymmetric: reloading a .RUL this
+    // function had just written consumed its first rule line as a header, which
+    // silently shifted every rule up by one and dropped the last.  No error was
+    // raised -- classifierList::loadRules() checks nothing by design -- so the
+    // simulation simply ran on the wrong rule base.
+    //
+    // Fixed by writing the header in both variants rather than by making
+    // loadRules() conditional, for two reasons.  Every surviving 1995 .RUL file
+    // carries this header (all six in Research/), so a loader that skipped it
+    // only under NETWORK could no longer read the real data in a plain build.
+    // And because reset() assigns agent IDs as i+1 (TASK.CPP:166, whose comment
+    // records that the task environment depends on exactly that), i+1 here
+    // reproduces getAgentID() character for character -- which makes a .RUL
+    // written by the two variants byte-identical, and interchangeable.  Unlike
+    // .sim files, which the note at the top of CFS.H correctly warns are not.
+    fprintf(fptr,"; Agent %d\n",i+1);
 #endif
     LCS[i].saveRules(fptr);
   }

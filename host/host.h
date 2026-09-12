@@ -39,5 +39,6 @@ int hostDisplayError(int num, const char *str);
 //----------------------------------------------------------------------------
 #define BORG_ERR_FILE_WRITE   100   // could not create or finish writing a file
 #define BORG_ERR_BATCH_SCRIPT 101   // malformed .b batch script
+#define BORG_ERR_LEGACY_FILE  102   // unreadable 1995 16-bit .SIM / .P / .RUL
 
 #endif

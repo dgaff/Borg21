@@ -163,9 +163,18 @@ class environmentInterface
    message environMsg;
 
    // Agent ID
-#ifdef NETWORK
+   //
+   // 2026 PORT (BUG FIX): this was declared #ifdef NETWORK, which made the
+   // plain-LCS build fail to compile -- EI.CPP uses agentIDcopy in EIGHT places
+   // OUTSIDE any #ifdef (lines 132, 133, 160, 161, 186, 443, 526, 541), every one
+   // of them either a task.* call that has to say which agent is asking, or the
+   // save/load of this very field.  environmentInterface::save() writes it
+   // unconditionally too, so the plain-LCS .sim format already reserves space for
+   // it.  The guard was simply in the wrong place: the field belongs to the
+   // multi-agent taskEnvironment, which exists in both variants, not to the
+   // network.  Borg 2.0 has the identical defect, so the plain build has not
+   // compiled since agent IDs arrived with the multi-agent rewrite.
    unsigned long agentIDcopy;
-#endif
 
    // Agent settings
    static float goalRange, obstRange,   // Distance robot can "see"
@@ -203,9 +212,10 @@ class environmentInterface
    //---------------------------------------------------------------------------
    // Agent access functions
    //---------------------------------------------------------------------------
-#ifdef NETWORK
+   // 2026 PORT (BUG FIX): unguarded along with the member above -- without a
+   // setter nothing could initialise agentIDcopy, and task.getCurrentLoc() would
+   // index agentPts[agentIDcopy-1] with whatever was on the stack.
    void setAgentID(unsigned long newID) { agentIDcopy = newID; }
-#endif
    const message & getSensorMsg() { return environMsg; }
    void getAgentStats(int *crashes) { *crashes = numCrashes; }
 

@@ -31,7 +31,17 @@
 //        a problem with it.  I just didn't see a reason to do it.)
 //============================================================================
 
+// 2026 PORT: guarded, so the plain-LCS variant can be selected by the build
+// system rather than by editing this line.  Commenting out the #define still
+// works exactly as the note above describes; defining BORG_NO_NETWORK achieves
+// the same thing without modifying the file, which is what lets CMake compile
+// and TEST both variants in one pass.  That matters because the #else branches
+// throughout this code are invisible to the compiler in a DLCS build, so
+// without a way to build both, nothing in the non-NETWORK path is ever checked
+// -- which is how the saveRules/loadRules asymmetry below survived.
+#ifndef BORG_NO_NETWORK
 #define NETWORK
+#endif
 
 //----------------------------------------------------------------------------
 // Standard C libary includes.
@@ -230,6 +240,14 @@ class classifierSystem
    void addToRxQueue(const queueList & qMsg)
    { network.addToRxQueue(qMsg); }
 #else
+   // 2026 PORT (BUG FIX): the plain-LCS counterpart of setAgentID above.  It
+   // forwards only to environ, because the other two agent-ID copies genuinely
+   // are network state: classList's is used to stamp supplier IDs on network
+   // payoff messages, and network itself does not exist here.  environ's copy is
+   // different in kind -- it is how environmentInterface tells taskEnvironment
+   // which agent it is acting for, which matters in both variants.
+   void setAgentID(unsigned long newID) { environ.setAgentID(newID); }
+
    void getMsgBoardPosting(int num, message & msg, int * supplier,
                           double *ruleBid)
    { msgBoard.getMessage(num,msg,supplier,ruleBid); }

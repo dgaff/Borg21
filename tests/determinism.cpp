@@ -24,6 +24,12 @@
 #include <host.h>
 
 //----------------------------------------------------------------------------
+// Built twice: once against borgcore (DLCS) and once against borgcore_plain
+// (BORG_NO_NETWORK).  See CHECK 4 for why the two have different golden values,
+// and CMakeLists.txt for why the plain variant is built at all.
+//----------------------------------------------------------------------------
+
+//----------------------------------------------------------------------------
 // `task` itself is defined in host/globals.cpp, inside borgcore.  In 1995 it
 // lived in BORG.CPP (Layer 3); Phase 3 moved it into the library so that a front
 // end cannot forget to declare it.  All that is left for a host to supply is the
@@ -82,7 +88,12 @@ static uint32_t trajectoryHash(int maxTicks, int *ticksRun,
 int main(void)
 {
   printf("\nBorg determinism and RNG-fidelity guard\n");
-  printf("======================================\n\n");
+  printf("======================================\n");
+#ifdef NETWORK
+  printf("variant: DLCS (NETWORK defined, network on by default)\n\n");
+#else
+  printf("variant: plain LCS (NETWORK not defined)\n\n");
+#endif
 
   //--------------------------------------------------------------------------
   // CHECK 1 -- the generator's constants.
@@ -157,16 +168,38 @@ int main(void)
   // CHECK 4 -- a full seeded run is reproducible, and matches the recorded
   // golden state.  GOLDEN_* were captured on arm64 macOS with Apple clang 21
   // at the defaults in CFS.H / TASK.H (seed 100, 2 agents, STANDARD field).
+  //
+  // THE TWO VARIANTS HAVE DIFFERENT GOLDEN VALUES, and that is correct rather
+  // than a problem.  In a DLCS build the network is ON by default --
+  // DEF_NET_STATE is 1 and DEF_CLASS_PASSING_STATE is 1 -- so the two agents
+  // share high-strength rules over the simulated network and learn differently
+  // from two agents that cannot talk.  A plain-LCS build has no network at all.
+  //
+  // The relationship between them was measured, not assumed: a DLCS build with
+  // classifierSystem::setSettings(..., netOn = 0) reproduces the plain-LCS
+  // numbers below EXACTLY -- 846 ticks, the same final position, the same hash.
+  // That confirms the claim in CLAUDE.md's "The NETWORK define" section that you
+  // can disable DLCS at runtime instead of recompiling, and it means the #else
+  // branches are not a separate simulator but the same one with the network out.
   //--------------------------------------------------------------------------
   printf("\nCHECK 4: run-to-run determinism\n");
   {
     // Golden values recorded 11 Sep 2026, arm64 macOS, Apple clang 21.0.0,
     // RelWithDebInfo, at the defaults in CFS.H and TASK.H: seed 100, 2 agents,
-    // STANDARD field, geneticInterval 4000, classListLength 32.  Agent 1 ends
-    // at (288.90, 293.18) -- it reached the goal, which sits at (300, 300).
+    // STANDARD field, geneticInterval 4000, classListLength 32.
+#ifdef NETWORK
+    // DLCS, network on by default.  Agent 1 ends at (288.90, 293.18) -- it
+    // reached the goal, which sits at (300, 300).
     const int      GOLDEN_TICKS  = 636;
     const uint32_t GOLDEN_HASH   = 3658847264u;
     const double   GOLDEN_X      = 288.90, GOLDEN_Y = 293.18;
+#else
+    // Plain LCS.  Takes longer to get there without shared rules, but still
+    // reaches the goal: (296.33, 312.27).
+    const int      GOLDEN_TICKS  = 846;
+    const uint32_t GOLDEN_HASH   = 2595334884u;
+    const double   GOLDEN_X      = 296.33, GOLDEN_Y = 312.27;
+#endif
 
     int tA = 0, tB = 0;
     double xA = 0, yA = 0, xB = 0, yB = 0;
