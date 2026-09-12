@@ -142,5 +142,6 @@ action means don't-care. An environment interface must implement pass-through it
   seeded run depends on the exact sequence of random draws, so reordering calls changes results
   even when the logic is equivalent.
 - Resource IDs live in `BORG.H` and must stay in sync with `BORG.RC`.
-- The non-`NETWORK` branch of `environmentInterface::postOutput` has a typo (`&suppport`,
+- (FIXED) The non-`NETWORK` branch of `environmentInterface::postOutput` has a typo (`&suppport`,
   [EI.CPP:391](EI.CPP#L391)) and will not compile. Only the DLCS build is currently buildable.
+  - Doug note: I don't remember what the non-network path was used for. Clearly it wouldn't have compiled, so perhaps I didn't use this path in my thesis dataset. It's a to-do to figure out what this path was for.
